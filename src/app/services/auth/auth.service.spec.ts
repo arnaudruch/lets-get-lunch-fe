@@ -5,20 +5,27 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/of';
+
+import { LocalStorageService } from 'ngx-webstorage';
+
 import { AuthService } from './auth.service';
 
-fdescribe('AuthService', () => {
+describe('AuthService', () => {
   let authService: AuthService;
   let http: HttpTestingController;
+  let localStorage: LocalStorageService; // Create local variable
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [AuthService]
+      providers: [AuthService, LocalStorageService] // Add to providers
     });
 
     authService = TestBed.get(AuthService);
     http = TestBed.get(HttpTestingController);
+    localStorage = TestBed.get(LocalStorageService); // Get the instance
   });
 
   xit('should be created', inject([AuthService], (service: AuthService) => {
@@ -31,23 +38,28 @@ fdescribe('AuthService', () => {
 
   describe('signup', () => {
 
-    it('should return a user object with a valid username and password', () => {
+    it('should return a token with a valid username and password', () => {
       const user = { 'username': 'myUser', 'password': 'password' };
       const signupResponse = {
         '__v': 0,
         'username': 'myUser',
         'password': '$2a$10$dKVr6CL3PIeJLmv3jw/BROYWccKq0UN/aAadz43LqeWFVhDPPaw8a',
+        '_id': '5a550ea739fbc4ca3ee0ce58',
         'dietPreferences': []
       };
+      const loginResponse = { 'token': 's3cr3tt0ken' };
       let response;
 
       authService.signup(user).subscribe(res => {
         response = res;
       });
+      spyOn(authService, 'login').and.callFake(() => Observable.of(loginResponse));
 
       http.expectOne('http://localhost:8080/api/users').flush(signupResponse);
-      expect(response).toEqual(signupResponse);
+      expect(response).toEqual(loginResponse);
+      expect(authService.login).toHaveBeenCalled();
       http.verify();
+
     });
 
     it('should return an error for an invalid user object', () => {
@@ -61,6 +73,26 @@ fdescribe('AuthService', () => {
 
       http.expectOne('http://localhost:8080/api/users').flush({ message: signupResponse }, { status: 400, statusText: 'Bad Request' });
       expect(errorResponse.error.message).toEqual(signupResponse);
+      http.verify();
+
+    });
+
+  });
+
+  describe('login', () => {
+
+    it('should return a token with a valid username and password', () => {
+      const user = { 'username': 'myUser', 'password': 'password' };
+      const loginResponse = { 'token': 's3cr3tt0ken' };
+      let response;
+
+      authService.login(user).subscribe(res => {
+        response = res;
+      });
+
+      http.expectOne('http://localhost:8080/api/sessions').flush(loginResponse);
+      expect(response).toEqual(loginResponse);
+      expect(localStorage.retrieve('Authorization')).toEqual('s3cr3tt0ken');
       http.verify();
 
     });
