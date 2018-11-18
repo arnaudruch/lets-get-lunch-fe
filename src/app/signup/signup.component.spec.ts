@@ -1,5 +1,8 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { Router } from '@angular/router';
+import { RouterStub } from '../testing/router-stubs';
+
 import { SignupModule } from './signup.module';
 import { SignupComponent } from './signup.component';
 import { AuthService } from '../services/auth/auth.service';
@@ -16,6 +19,7 @@ let component: SignupComponent;
 let fixture: ComponentFixture<SignupComponent>;
 let signupPage: SignupPage;
 let authService: AuthService;
+let router: Router;
 
 class SignupPage {
 
@@ -47,7 +51,8 @@ describe('SignupComponent', () => {
       .overrideComponent(SignupComponent, {
         set: {
           providers: [
-            { provide: AuthService, useClass: MockAuthService }
+            { provide: AuthService, useClass: MockAuthService },
+            { provide: Router, useClass: RouterStub }
           ]
         }
       }).compileComponents();
@@ -59,6 +64,7 @@ describe('SignupComponent', () => {
 
     signupPage = new SignupPage();
     authService = fixture.debugElement.injector.get(AuthService);
+    router = fixture.debugElement.injector.get(Router);
 
     fixture.detectChanges();
     return fixture.whenStable().then(() => {
@@ -83,6 +89,7 @@ describe('SignupComponent', () => {
     spyOn(authService, 'signup').and.callFake(() => {
       return Observable.of({ token: 's3cr3tt0ken' });
     });
+    spyOn(router, 'navigate');
     signupPage.submitBtn.nativeElement.click();
 
     expect(authService.signup).toHaveBeenCalledWith({
@@ -90,7 +97,7 @@ describe('SignupComponent', () => {
       password: 'password',
       dietPreferences: ['BBQ', 'Burger']
     });
-    // Add expectation to redirect to user dashboard
+    expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
 
   });
 
