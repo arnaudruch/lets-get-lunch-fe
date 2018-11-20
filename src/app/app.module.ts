@@ -10,6 +10,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { AuthService } from './services/auth/auth.service';
+import { AuthGuard } from './guards/auth/auth.guard';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,7 @@ import { AuthService } from './services/auth/auth.service';
     HttpClientModule,
     Ng2Webstorage
   ],
-  providers: [AuthService],
+  providers: [AuthService, AuthGuard],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -5,7 +5,7 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 
 import { LocalStorageService } from 'ngx-webstorage';
@@ -97,6 +97,22 @@ describe('AuthService', () => {
 
     });
 
+  });
+
+  describe('isLoggedIn', () => {
+
+    it('should return true if the user is logged in', () => {
+      localStorage.store('Authorization', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+      'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDI' +
+      'yfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c');
+      expect(authService.isLoggedIn()).toEqual(true);
+    });
+
+  });
+
+  it('should return false if the user is not logged in', () => {
+    localStorage.clear('Authorization');
+    expect(authService.isLoggedIn()).toEqual(false);
   });
 
 });
