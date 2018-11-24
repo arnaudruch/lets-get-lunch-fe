@@ -59,7 +59,6 @@ describe('AuthService', () => {
       expect(response).toEqual(loginResponse);
       expect(authService.login).toHaveBeenCalled();
       http.verify();
-
     });
 
     it('should return an error for an invalid user object', () => {
@@ -74,7 +73,6 @@ describe('AuthService', () => {
       http.expectOne('http://localhost:8080/api/users').flush({ message: signupResponse }, { status: 400, statusText: 'Bad Request' });
       expect(errorResponse.error.message).toEqual(signupResponse);
       http.verify();
-
     });
 
   });
@@ -89,12 +87,13 @@ describe('AuthService', () => {
       authService.login(user).subscribe(res => {
         response = res;
       });
+      spyOn(authService.loggedIn, 'emit');
 
       http.expectOne('http://localhost:8080/api/sessions').flush(loginResponse);
       expect(response).toEqual(loginResponse);
       expect(localStorage.retrieve('Authorization')).toEqual('s3cr3tt0ken');
+      expect(authService.loggedIn.emit).toHaveBeenCalled();
       http.verify();
-
     });
 
   });
@@ -103,16 +102,32 @@ describe('AuthService', () => {
 
     it('should return true if the user is logged in', () => {
       localStorage.store('Authorization', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
-      'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDI' +
-      'yfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c');
+        'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDI' +
+        'yfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c');
       expect(authService.isLoggedIn()).toEqual(true);
+    });
+
+    it('should return false if the user is not logged in', () => {
+      localStorage.clear('Authorization');
+      expect(authService.isLoggedIn()).toEqual(false);
     });
 
   });
 
-  it('should return false if the user is not logged in', () => {
-    localStorage.clear('Authorization');
-    expect(authService.isLoggedIn()).toEqual(false);
+  describe('logout', () => {
+
+    it('should clear the token from local storage', () => {
+      spyOn(authService.loggedIn, 'emit');
+
+      localStorage.store('Authorization', 's3cr3tt0ken');
+      expect(localStorage.retrieve('Authorization')).toEqual(('s3cr3tt0ken'));
+
+      authService.logout();
+
+      expect(localStorage.retrieve('Authorization')).toBeFalsy();
+      expect(authService.loggedIn.emit).toHaveBeenCalledWith(false);
+    });
+
   });
 
 });
