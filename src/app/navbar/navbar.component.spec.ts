@@ -73,7 +73,7 @@ describe('NavbarComponent', () => {
     });
   });
 
-  describe('With a user who is not logged in', () => {
+  describe('with a user who is not logged in', () => {
     beforeEach(() => {
       authService.isLoggedIn = jasmine.createSpy('isLoggedIn').and.returnValue(false);
       fixture.detectChanges();
